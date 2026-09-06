@@ -1,0 +1,145 @@
+Build a full-stack web app called Wasl (وصل) — a private, culturally-aware care-coordination platform that helps Muslim families coordinate everyday support for an elder while respecting privacy, independence, personal preferences, and community connection. This is a hackathon MVP: build one working vertical slice end-to-end, fully functional, not just UI mockups. Make it demoable immediately with realistic seed data.
+
+WHO IT'S FOR
+Primary user: the elder, called the "Circle Lead" — e.g. Fatima, 78, living independently in Montréal. Secondary users: family members called "Amanah Partners" (e.g. her children Omar and Layla), a "Nurse/Professional Partner" (paid home-care worker), and a "Companion" (community/mosque volunteer). One household/subscription ("Wasl Circle") can contain up to 2 Circle Leads plus multiple Amanah Partners, Nurses, and Companions. The elder may have sight/dexterity limitations, so the UI must be large-text, high-contrast, minimal-step, and voice-friendly.
+
+HOME SCREEN — KEEP EXTREMELY SIMPLE
+The Home screen must be minimal, not a dashboard. It should show almost nothing except:
+
+A large, centered, unmissable "Talk to Wasl" button — this is the dominant element on the screen, at least half the visible height on mobile.
+
+One small personalized field above or below it (prayer time countdown by default, switchable to weather / emergency call shortcut / next reminder).
+
+Optionally, a short "Today" line of text (e.g. "You have 2 things planned today") that taps through to Calendar — but no task cards, no lists, no clutter on Home itself. Anything more detailed belongs on the Calendar or Feed tabs, not Home.
+
+AGENT INTERACTION — VOICE FIRST, WITH A TEXT FALLBACK
+Tapping "Talk to Wasl" opens a full-screen voice conversation interface, not a chat log:
+
+Default mode is spoken conversation: use the browser's Web Speech API (SpeechRecognition for input, SpeechSynthesis for output) so the Circle Lead can speak naturally and hear the agent's reply spoken back, hands-free.
+
+Show a simple animated listening/speaking indicator (e.g. a pulsing circle) instead of a text transcript by default, to keep it calm and uncluttered — but always show a small toggle/button clearly labeled to "Switch to typing" that flips the same conversation into a standard text chat input + transcript view for users who prefer or need to type (e.g. a nurse or family member using the same agent for quick task entry).
+
+Both modes must hit the same backend agent endpoint and produce the same task-creation behavior described below — voice and text are two input surfaces on one conversation, not two separate features.
+
+If the browser or device doesn't support speech APIs, gracefully fall back to text mode automatically and say so briefly.
+
+CORE USER FLOW TO BUILD (must work end-to-end, this is the single most important thing)
+
+Fatima (Circle Lead) logs in and lands on the simple Home screen described above.
+
+She taps "Talk to Wasl" and speaks: "I need someone to take me to the pharmacy on Thursday afternoon."
+
+The agent (LLM-powered, backend system prompt described below) replies — spoken aloud and optionally shown as text — using her preferred name and chosen greeting style, checks the shared Calendar and each Amanah Partner's stored availability, finds a match (e.g. Omar is free Thursday afternoon), and proposes a task: title "Pharmacy pickup," label "Transport," due Thursday 3:00 PM, urgency "Not urgent," caregiver-needed = yes.
+
+The agent states the draft task back to her clearly and asks for explicit confirmation ("Should I go ahead and add this?") before creating anything. On her confirmation, the task is saved with status "Not assigned" and appears on the shared Calendar and in Omar's Feed/Alerts.
+
+Omar (Amanah Partner) logs in on a separate account, sees the new task on the Calendar and in his Alerts, taps "Claim," status changes to "In progress."
+
+Omar marks the task "Done" and fills a structured Handoff Note: "What happened" / "What's next" / "Who should know," e.g. "Picked up medication, pharmacist said refill ready in 2 weeks."
+
+The completed task and handoff note appear for everyone in the circle who has visibility into that item (see Feed visibility rules below) — nothing was lost to a chat thread.
+
+Separately, any user with Calendar access can create a task manually with a custom label (e.g. "Legal," "Financial," "Medical appointment," "Community event," "Tech help," "Grocery," "Home repair"), mark it caregiver-needed or not, assign a status, and open it into a simple comment thread with @mentions.
+
+Role-based tab and permission access is enforced everywhere (full rules below).
+
+ROLE-BASED TAB ACCESS — ENFORCE STRICTLY, DO NOT MAKE ALL TABS VISIBLE TO ALL ROLES
+Bottom navigation must render a different set of tabs per role, and the backend must independently enforce the same restrictions (never rely on hiding a tab in the UI alone — block the API route too).
+
+Circle Lead: Home, Calendar, Chat, Feed, Alerts, Documents, Permissions, Profile — full access to everything in their own circle.
+
+Amanah Partner: Home, Calendar, Chat, Feed, Alerts, Documents (only categories explicitly granted), Profile. No Permissions tab.
+
+Nurse / Professional Partner: Home, Calendar (assigned items only), Alerts (assigned items only), Profile. No Chat tab. No Feed tab. No Documents tab unless individually granted per-document-category by the Circle Lead. No Permissions tab.
+
+Companion: Home, Calendar (assigned item only), Profile. No Chat tab. No Feed tab. No Documents tab. No Permissions tab.
+
+Only ONE role can view and change permission grants for the whole circle: the Circle Lead. Not Amanah Partners, not anyone else — build this as a hard rule, not a default that others could self-escalate. The Permissions screen only ever appears for the Circle Lead's own account, and only the Circle Lead's user ID may call the permission-update API route (reject with a 403 for anyone else, including Amanah Partners).
+
+CHAT TAB (NEW — build as its own dedicated tab, not just task comment threads)
+
+Chat is a tab in the bottom navigation, visible only to Circle Lead and Amanah Partner roles (see access rules above — Nurse and Companion do not get this tab).
+
+It is a shared group conversation for the whole Wasl Circle (all Amanah Partners + the Circle Lead), separate from the per-task comment threads on Calendar items.
+
+Simple message list + input box, sender name/avatar, timestamps, @mention support reusing the same mention component as task comments.
+
+Seed it with a short realistic sample conversation between Fatima, Omar, and Layla.
+
+FEED — AUDIENCE-SCOPED VISIBILITY (NEW — this changes how posting works)
+The Feed is not visible identically to everyone, and posting is not broadcast-to-all by default. When any user creates a manual Feed post, they must explicitly choose who can see that specific message before publishing — this is a required step in the compose flow, not an afterthought toggle.
+
+Compose screen for a new Feed post must include an "Who can see this" selector with these options: "Everyone in the Wasl Circle," "Amanah Partners only" (excludes the Circle Lead), "Circle Lead + specific people" (a multi-select list of individual members), or "Just me and [specific person]" (pick one recipient). Require a selection before the Post button is enabled.
+
+Separately, keep the existing "Urgent — notify everyone in the selected audience now" vs. "Routine — visible, no push" flag; urgency controls notification push behavior, audience selection controls who can see the post at all. These are two independent controls on the same compose form.
+
+The Feed a given user sees on their own Feed tab is filtered server-side to only the posts whose audience includes them — never send the full unfiltered feed to the client and hide it with CSS; the API must only return posts the requesting user is authorized to see.
+
+System-generated feed items (status changes, completed tasks, handoff notes) default to "Everyone in the Wasl Circle who has access to that task," following the same task-level permission rules already defined (e.g. a Nurse still won't see a Feed item about a Financial-labeled task, and a Nurse has no Feed tab regardless).
+
+Explicitly demonstrate this in seed data: include at least one manual Feed post scoped to "Amanah Partners only" (so it does NOT appear in the Circle Lead's own Feed) to prove the filtering actually works, plus one post scoped to "Everyone" for contrast.
+
+FULL SCREEN LIST (build all of these, keep each simple)
+
+Sign-up / Onboarding: role selection (Circle Lead, Amanah Partner, Nurse/Professional Partner, Companion) → phone or email + password → preferred language (English, French, Arabic with RTL support) → preferred name and greeting style (options: a Salam-based greeting, a neutral greeting, or name-only — elder's free choice, never assumed) → modesty preferences (comfort with opposite-gender caregiver for: personal care, medical visits, transport — each a simple toggle) → dietary preference (free text, e.g. halal) → notification preferences (toggle each: prayer times, alerts, reminders, task completions, arrivals/pickups) → availability (for non-elder roles: days/times available for calls, visits, transport, errands).
+
+Home: as described above — minimal, dominant "Talk to Wasl" button, one dynamic field, optional one-line "Today" summary.
+
+Agent conversation: full-screen voice-first interface with a "switch to typing" fallback, as described above.
+
+Calendar: list + simple calendar view of Events (appointments, Islamic/cultural occasions like Ramadan/Eid/Jumu'ah) and Tasks (errands, home, admin). Each item shows: title, label/category (user-definable, freeform tag), caregiver-needed yes/no, assignee, status (Not assigned / In progress / Done), due date/time, urgency (Low/Normal/Urgent, set at creation). Clicking an item opens a detail view with a comment thread and a Handoff Note form (What happened / What's next / Who should know). Visible items filtered per role as defined above.
+
+Chat: shared Wasl Circle group conversation, as described above. Not shown to Nurse or Companion roles.
+
+Feed: reverse-chronological stream combining calendar status changes, manual notes (each scoped by audience and tagged Urgent/Routine by its author), and a mocked "device signal" entry (e.g. "Fatima's phone location: en route home"). Not shown to Nurse or Companion roles. Server-side filtered per audience rules above.
+
+Alerts: a filtered view showing only unassigned tasks (sorted by urgency then due date) and any items flagged Urgent, scoped to items the viewing user has access to. Available to all roles, but each role only sees items relevant/assigned to them per the Calendar visibility rules.
+
+Documents: upload a file (image or PDF), require the uploader to pick a category (Legal, Financial, Medical, Identification, Other) before saving; list view grouped by category; enforce that Nurse and Companion roles cannot view Legal or Financial categories (and have no Documents tab at all for Companion) unless the Circle Lead has explicitly toggled access for that person on the Permissions screen.
+
+Permissions screen (Circle Lead ONLY — hard-enforced, see rules above): a simple table listing each Amanah Partner/Nurse/Companion in the circle with toggles for: view financial documents, view legal documents, view health notes, view location data. Changes take effect immediately.
+
+Profile / "What Matters to Me": editable by the Circle Lead only for their own preferences — language, greeting style, dietary preference, modesty preferences, prayer reminders on/off, notification categories. Other roles have a simpler Profile screen with just their own contact info, language, and availability.
+
+DATA MODEL (use these entities/tables, adapt field types sensibly)
+
+User: id, name, preferred_name, role (circle_lead | amanah_partner | nurse | companion), phone_or_email, password_hash, preferred_language, greeting_style, wasl_circle_id.
+
+WaslCircle: id, name (e.g. "Fatima's Wasl Circle"), owner_user_id (must be a circle_lead).
+
+CircleMembership: id, wasl_circle_id, user_id, role, is_circle_lead (bool).
+
+Preference: id, user_id (circle lead), dietary_preference (text), modesty_personal_care (bool), modesty_medical_visits (bool), modesty_transport (bool), prayer_reminders_enabled (bool), notification_prayer (bool), notification_alerts (bool), notification_reminders (bool), notification_task_complete (bool), notification_arrivals (bool).
+
+Availability: id, user_id, day_of_week, start_time, end_time, mode (call | visit | transport | errand).
+
+Task: id, wasl_circle_id, title, description, label (freeform text tag), caregiver_needed (bool), assignee_user_id (nullable), status (not_assigned | in_progress | done), urgency (low | normal | urgent), due_at, created_by_user_id, created_at, is_event (bool).
+
+HandoffNote: id, task_id, author_user_id, what_happened (text), whats_next (text), who_should_know (text), created_at.
+
+Comment: id, task_id, author_user_id, body, mentioned_user_ids (array), created_at.
+
+ChatMessage: id, wasl_circle_id, author_user_id, body, mentioned_user_ids (array), created_at.
+
+FeedItem: id, wasl_circle_id, type (status_change | manual_note | device_signal), body, is_urgent (bool), author_user_id (nullable for system-generated), audience_type (everyone | amanah_partners_only | circle_lead_plus_specific | direct), audience_user_ids (array, used when audience_type is circle_lead_plus_specific or direct), related_task_id (nullable, for inherited task-level permission checks), created_at.
+
+Document: id, wasl_circle_id, uploader_user_id, category (legal | financial | medical | identification | other), file_url, file_name, uploaded_at.
+
+PermissionGrant: id, wasl_circle_id, grantee_user_id, can_view_financial (bool), can_view_legal (bool), can_view_health_notes (bool), can_view_location (bool), granted_by_user_id (must always be a circle_lead user id — enforce in the backend, not just the UI).
+
+STACK
+Use Replit's native primitives: Replit Auth for login (email/password is fine if simpler), Replit Postgres/Neon database for storage (via Drizzle or Prisma, your choice), Node/Express or Next.js backend (your choice, pick whichever you can scaffold fastest and most reliably), React frontend with Tailwind CSS. Use the Web Speech API (SpeechRecognition + SpeechSynthesis) in the browser for voice input/output — no external voice API needed. Use Secrets for the LLM API key (name the env var OPENAI_API_KEY; default to OpenAI's cheapest capable chat model) to power the agent conversation endpoint, which both the voice and text UI call. No other external integrations needed for this MVP.
+
+AGENT SYSTEM PROMPT (implement this as the backend system prompt for the agent conversation endpoint)
+"You are the Wasl Companion, a warm, respectful assistant helping an elder (the Circle Lead) coordinate everyday support with their family (Amanah Partners), professional caregivers, and community. Always address the user by their preferred name and use the greeting style they selected during onboarding. Be patient, kind, and never rushed — reflect the Islamic value of Ihsan (excellence and kindness in every interaction). When the user expresses a need, ask clarifying questions only if necessary (is this for today or another day, what time, is it urgent), then check the shared calendar and family members' stated availability before proposing who could help; if no one is available, explain why clearly and offer alternatives rather than failing silently. Always state any draft task back to the user in plain spoken language and wait for explicit confirmation before creating it. Never provide medical diagnosis, dosage recommendations, or medical triage of any kind — if the user describes a symptom or health concern, gently redirect them to contact their nurse, doctor, or in a genuine emergency, local emergency services, and do not attempt to assess severity yourself. Keep responses short, plain-language, and dignified — never patronizing or childlike. Since replies may be spoken aloud, avoid long lists, markdown, or anything awkward to hear as speech — speak in natural short sentences."
+
+DESIGN / STYLE
+Deep navy (#102A43) as the primary color, warm muted gold (#C8A35A) as the accent, plenty of white space, large readable typography (minimum 18px body text, larger still on Home and the Agent conversation screen), high contrast, rounded corners, minimal icons. Support right-to-left layout when Arabic is selected as the display language. Fully mobile-responsive. Bottom tab bar renders per-role as defined above; "Talk to Wasl" is a large floating button always accessible from Home (not from every tab — Home is the anchor for the agent).
+
+SCOPE GUARDRAILS — build this in THIS pass
+Must include: onboarding for all 4 roles, the simplified Home screen, the voice-first Agent conversation with typing fallback and the full task-creation-via-conversation-and-confirmation flow, Calendar with manual task/event creation, labels, statuses, urgency, the new Chat tab (Circle Lead + Amanah Partners only), Feed with per-post audience selection and server-side filtered visibility, Alerts, Documents with category gating, the Circle-Lead-only Permissions screen with backend enforcement, and per-role tab visibility enforced in both frontend navigation and backend route access. Seed data for one full demo circle: Fatima (Circle Lead), Omar and Layla (Amanah Partners), one Nurse, and one Companion, with 5-8 realistic sample tasks/events across different statuses and labels, a short seeded Chat conversation, and at least one Feed post scoped to "Amanah Partners only" plus one scoped to "Everyone" to prove audience filtering works.
+
+Explicitly OUT of scope for this pass — do not build: real-time push notifications infrastructure (in-app only), actual wearable/GPS device integration (mock it with one static Feed entry only), multi-language voice input beyond English (build the architecture to support it later, but only English voice needs to work now), payment/subscription billing, a caregiver marketplace or directory, any diagnostic, dosage, or medical-triage logic anywhere in the app.
+
+VERIFICATION — before declaring done
+Restate your plan in 5-8 bullets first. Then build the data model and backend routes (including the role-based access checks and audience-filtered Feed queries), then the frontend screens with per-role navigation, then wire in the voice/text agent, then seed the demo data. After implementation: run the app, fix all startup errors, and confirm the full core user flow works by actually performing it end to end: log in as Fatima and create the pharmacy task via voice or typed conversation, confirm it, log in as Omar and claim/complete it with a handoff note, log back in as Fatima and confirm the completed task appears; separately log in as the seeded Nurse account and confirm the Chat and Feed tabs are absent and the Permissions screen is inaccessible; log in as an Amanah Partner and confirm they cannot reach the Permissions screen; and confirm the "Amanah Partners only" Feed post does not appear when logged in as Fatima. List every file you changed, the exact URL to open, login credentials for each of the 4 seeded demo users, any known limitations, and what environment variables/secrets I need to set myself.

@@ -1,0 +1,1 @@
+- [Clerk custom sign-in flows](clerk-custom-sign-in.md) — use the current Clerk instance/client for custom password sign-in; avoid mixing legacy hook exports with the signal-based React package.

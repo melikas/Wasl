@@ -1,0 +1,39 @@
+Please make the following changes carefully and **keep the existing design system and functionality intact unless explicitly mentioned below**:
+
+1. **Fix scrolling**
+
+   * Review all pages and make sure scrolling works correctly.
+   * Some pages currently do not scroll properly. Fix the scroll behavior consistently across the entire app.
+
+2. **Move the Chat navigation**
+
+   * Remove **Chat** from the bottom navigation bar.
+   * Move Chat to the **top-left area of the Feed page**.
+   * Use a clear and recognizable chat icon. The current signal/wave-style icon is confusing.
+   * Use an icon closer to a **Telegram-style chat/message icon** so users immediately understand that it represents Chat.
+
+3. **Add the missing authentication & onboarding flow**
+   Based on the PRD, we are still missing the complete:
+
+   * Sign Up flow
+   * Sign In flow
+   * Onboarding flow
+   * Initial user information collection
+   * Initial account/profile settings
+
+   Please implement the complete user journey for a **new user creating an account**, including all required questions and information that should be collected based on the PRD.
+
+4. **Remove the Demo Role Switch**
+
+   * The current **"Switch Demo Role"** functionality is incorrect and should be removed.
+   * Role selection/identification should be handled through the actual authentication flow.
+   * During **Sign In**, the user should enter their **username and password**, and the system should identify the user's assigned role from their account.
+   * Do not expose a role-switching control in the application.
+
+5. **User-specific profile**
+
+   * After signing in, the user should only see **their own profile and personal information**.
+   * The profile should dynamically reflect the authenticated user's data and role.
+   * Users should not be able to switch roles or view another user's profile through the UI.
+
+Please implement these changes based on the **attached PRD** and make sure the entire flow is logically connected from **Sign Up → Onboarding → Sign In → Role-based experience → Personal Profile**.

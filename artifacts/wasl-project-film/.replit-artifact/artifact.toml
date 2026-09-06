@@ -1,0 +1,29 @@
+kind = "video"
+videoAspectRatio = "16:9"
+previewPath = "/wasl-project-film/"
+title = "Wasl — Care Connected"
+description = "A cinematic animated overview of Wasl, the multilingual care-coordination platform connecting Muslim elders, families, nurses, and companions."
+version = "1.0.0"
+id = "artifacts/wasl-project-film"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/wasl-project-film/" ]
+localPort = 25134
+
+[services.development]
+run = "pnpm --filter @workspace/wasl-project-film run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/wasl-project-film", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/wasl-project-film/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25134"
+BASE_PATH = "/wasl-project-film/"

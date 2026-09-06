@@ -1,0 +1,999 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Wasl care coordination API
+servers:
+  - url: /api
+tags:
+  - name: health
+  - name: wasl
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags:
+        - health
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+  /session:
+    get:
+      operationId: getSession
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Current session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+    post:
+      operationId: switchSession
+      tags:
+        - wasl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionInput'
+      responses:
+        '200':
+          description: Updated session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+  /demo/sign-in-token:
+    post:
+      operationId: createDemoSignInToken
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Short-lived Clerk sign-in token for the public demo account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DemoSignInToken'
+        '503':
+          description: Demo sign-in is temporarily unavailable
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Home dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+  /users:
+    get:
+      operationId: listUsers
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Circle members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /tasks:
+    get:
+      operationId: listTasks
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Visible tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+    post:
+      operationId: createTask
+      tags:
+        - wasl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskInput'
+      responses:
+        '201':
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      tags:
+        - wasl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Task detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+    patch:
+      operationId: updateTask
+      tags:
+        - wasl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /tasks/{id}/comments:
+    post:
+      operationId: addComment
+      tags:
+        - wasl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentInput'
+      responses:
+        '201':
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /tasks/{id}/handoff:
+    post:
+      operationId: completeTask
+      tags:
+        - wasl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HandoffInput'
+      responses:
+        '200':
+          description: Completed task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /feed:
+    get:
+      operationId: listFeed
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Circle feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeedItem'
+    post:
+      operationId: createFeedNote
+      tags:
+        - wasl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedNoteInput'
+      responses:
+        '201':
+          description: Created feed note
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedItem'
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Urgent and unassigned items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AlertItem'
+  /documents:
+    get:
+      operationId: listDocuments
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Visible documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+    post:
+      operationId: createDocument
+      tags:
+        - wasl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentInput'
+      responses:
+        '201':
+          description: Uploaded document metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+  /permissions:
+    get:
+      operationId: listPermissions
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Permission grants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PermissionGrant'
+    patch:
+      operationId: updatePermission
+      tags:
+        - wasl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionInput'
+      responses:
+        '200':
+          description: Updated permission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionGrant'
+  /profile:
+    get:
+      operationId: getProfile
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Circle lead profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+    patch:
+      operationId: updateProfile
+      tags:
+        - wasl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+  /messages:
+    get:
+      operationId: listMessages
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Circle group messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CircleMessage'
+    post:
+      operationId: sendMessage
+      tags:
+        - wasl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CircleMessageInput'
+      responses:
+        '201':
+          description: Sent message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleMessage'
+  /agent/draft:
+    post:
+      operationId: draftAgentTask
+      tags:
+        - wasl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentMessageInput'
+      responses:
+        '200':
+          description: Assistant response with optional task draft
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentReply'
+  /users/invite:
+    post:
+      operationId: inviteUser
+      tags:
+        - wasl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteUserInput'
+      responses:
+        '200':
+          description: Invited user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /onboarding/pending:
+    get:
+      operationId: getPendingOnboarding
+      tags:
+        - wasl
+      responses:
+        '200':
+          description: Pending user details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  role:
+                    type: string
+                  preferredName:
+                    type: string
+  /users/{id}:
+    patch:
+      operationId: updateUser
+      tags:
+        - wasl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - username
+        - preferredName
+        - role
+        - preferredLanguage
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        username:
+          type: string
+          pattern: ^[a-z0-9_]+$
+        preferredName:
+          type: string
+        role:
+          type: string
+          enum:
+            - circle_lead
+            - amanah_partner
+            - nurse
+            - companion
+        preferredLanguage:
+          type: string
+          enum:
+            - en
+            - fr
+            - ar
+            - fa
+        avatarInitials:
+          type: string
+        availabilitySummary:
+          type: string
+        canManageMembers:
+          type: boolean
+        isPending:
+          type: boolean
+    Session:
+      type: object
+      required:
+        - user
+        - circleName
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        circleName:
+          type: string
+    SessionInput:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: integer
+        preferredLanguage:
+          type: string
+          enum:
+            - en
+            - fr
+            - ar
+            - fa
+    Comment:
+      type: object
+      required:
+        - id
+        - authorName
+        - body
+        - createdAt
+      properties:
+        id:
+          type: integer
+        authorName:
+          type: string
+        body:
+          type: string
+        createdAt:
+          type: string
+    Handoff:
+      type: object
+      required:
+        - authorName
+        - whatHappened
+        - whatsNext
+        - whoShouldKnow
+        - createdAt
+      properties:
+        authorName:
+          type: string
+        whatHappened:
+          type: string
+        whatsNext:
+          type: string
+        whoShouldKnow:
+          type: string
+        createdAt:
+          type: string
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - label
+        - caregiverNeeded
+        - status
+        - urgency
+        - dueAt
+        - isEvent
+        - comments
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        label:
+          type: string
+        caregiverNeeded:
+          type: boolean
+        assigneeUserId:
+          type:
+            - integer
+            - 'null'
+        assigneeName:
+          type:
+            - string
+            - 'null'
+        status:
+          type: string
+          enum:
+            - not_assigned
+            - in_progress
+            - done
+        urgency:
+          type: string
+          enum:
+            - low
+            - normal
+            - urgent
+        dueAt:
+          type: string
+        isEvent:
+          type: boolean
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        handoff:
+          anyOf:
+            - $ref: '#/components/schemas/Handoff'
+            - type: 'null'
+    TaskInput:
+      type: object
+      required:
+        - title
+        - description
+        - label
+        - caregiverNeeded
+        - urgency
+        - dueAt
+        - isEvent
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        label:
+          type: string
+        caregiverNeeded:
+          type: boolean
+        assigneeUserId:
+          type:
+            - integer
+            - 'null'
+        urgency:
+          type: string
+          enum:
+            - low
+            - normal
+            - urgent
+        dueAt:
+          type: string
+        isEvent:
+          type: boolean
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        status:
+          type: string
+          enum:
+            - not_assigned
+            - in_progress
+            - done
+        assigneeUserId:
+          type:
+            - integer
+            - 'null'
+        urgency:
+          type: string
+          enum:
+            - low
+            - normal
+            - urgent
+    CommentInput:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          type: string
+    HandoffInput:
+      type: object
+      required:
+        - whatHappened
+        - whatsNext
+        - whoShouldKnow
+      properties:
+        whatHappened:
+          type: string
+        whatsNext:
+          type: string
+        whoShouldKnow:
+          type: string
+    FeedItem:
+      type: object
+      required:
+        - id
+        - type
+        - body
+        - isUrgent
+        - createdAt
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum:
+            - status_change
+            - manual_note
+            - device_signal
+        body:
+          type: string
+        isUrgent:
+          type: boolean
+        authorName:
+          type:
+            - string
+            - 'null'
+        createdAt:
+          type: string
+        taskId:
+          type:
+            - integer
+            - 'null'
+    FeedNoteInput:
+      type: object
+      required:
+        - body
+        - isUrgent
+      properties:
+        body:
+          type: string
+        isUrgent:
+          type: boolean
+    AlertItem:
+      type: object
+      required:
+        - id
+        - title
+        - detail
+        - urgency
+        - dueAt
+        - kind
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        detail:
+          type: string
+        urgency:
+          type: string
+        dueAt:
+          type: string
+        kind:
+          type: string
+    Document:
+      type: object
+      required:
+        - id
+        - fileName
+        - category
+        - uploadedAt
+        - uploaderName
+      properties:
+        id:
+          type: integer
+        fileName:
+          type: string
+        category:
+          type: string
+          enum:
+            - legal
+            - financial
+            - medical
+            - identification
+            - other
+        uploadedAt:
+          type: string
+        uploaderName:
+          type: string
+    DocumentInput:
+      type: object
+      required:
+        - fileName
+        - category
+      properties:
+        fileName:
+          type: string
+        category:
+          type: string
+          enum:
+            - legal
+            - financial
+            - medical
+            - identification
+            - other
+    PermissionGrant:
+      type: object
+      required:
+        - userId
+        - userName
+        - role
+        - canViewFinancial
+        - canViewLegal
+        - canViewHealthNotes
+        - canViewLocation
+      properties:
+        userId:
+          type: integer
+        userName:
+          type: string
+        role:
+          type: string
+        canViewFinancial:
+          type: boolean
+        canViewLegal:
+          type: boolean
+        canViewHealthNotes:
+          type: boolean
+        canViewLocation:
+          type: boolean
+    PermissionInput:
+      allOf:
+        - $ref: '#/components/schemas/PermissionGrant'
+    Profile:
+      type: object
+      required:
+        - preferredName
+        - preferredLanguage
+        - greetingStyle
+        - dietaryPreference
+        - modestyPersonalCare
+        - modestyMedicalVisits
+        - modestyTransport
+        - prayerRemindersEnabled
+        - notificationPrayer
+        - notificationAlerts
+        - notificationReminders
+        - notificationTaskComplete
+        - notificationArrivals
+      properties:
+        preferredName:
+          type: string
+        preferredLanguage:
+          type: string
+          enum:
+            - en
+            - fr
+            - ar
+            - fa
+        greetingStyle:
+          type: string
+          enum:
+            - salam
+            - neutral
+            - name_only
+        dietaryPreference:
+          type: string
+        modestyPersonalCare:
+          type: boolean
+        modestyMedicalVisits:
+          type: boolean
+        modestyTransport:
+          type: boolean
+        prayerRemindersEnabled:
+          type: boolean
+        notificationPrayer:
+          type: boolean
+        notificationAlerts:
+          type: boolean
+        notificationReminders:
+          type: boolean
+        notificationTaskComplete:
+          type: boolean
+        notificationArrivals:
+          type: boolean
+        permissions:
+          $ref: '#/components/schemas/PermissionGrant'
+    ProfileInput:
+      allOf:
+        - $ref: '#/components/schemas/Profile'
+    CircleMessage:
+      type: object
+      required:
+        - id
+        - authorUserId
+        - authorName
+        - authorUsername
+        - authorInitials
+        - body
+        - createdAt
+      properties:
+        id:
+          type: integer
+        authorUserId:
+          type: integer
+        authorName:
+          type: string
+        authorUsername:
+          type: string
+        authorInitials:
+          type: string
+        body:
+          type: string
+        createdAt:
+          type: string
+    CircleMessageInput:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    Dashboard:
+      type: object
+      required:
+        - greeting
+        - todayLabel
+        - prayerName
+        - prayerCountdown
+        - todayTasks
+        - openAlerts
+        - circleMemberCount
+      properties:
+        greeting:
+          type: string
+        todayLabel:
+          type: string
+        prayerName:
+          type: string
+        prayerCountdown:
+          type: string
+        todayTasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        openAlerts:
+          type: integer
+        circleMemberCount:
+          type: integer
+    DemoSignInToken:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+    AgentMessageInput:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+    AgentReply:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        draft:
+          anyOf:
+            - $ref: '#/components/schemas/TaskInput'
+            - type: 'null'
+    InviteUserInput:
+      type: object
+      required:
+        - email
+        - role
+        - preferredName
+      properties:
+        email:
+          type: string
+        role:
+          type: string
+          enum:
+            - circle_lead
+            - amanah_partner
+            - nurse
+            - companion
+        preferredName:
+          type: string
+    UserUpdate:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+            - amanah_partner
+            - nurse
+            - companion
+        canManageMembers:
+          type: boolean

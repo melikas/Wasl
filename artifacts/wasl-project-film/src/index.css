@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --color-primary: #102A43; /* Navy */
+  --color-secondary: #C8A35A; /* Gold */
+  --color-accent: #2C5282; /* Lighter Navy */
+
+  --color-bg-light: #F8F9FA;
+  --color-bg-cream: #F3F1EC;
+  --color-bg-dark: #102A43;
+  --color-bg-muted: #E2E8F0;
+
+  --color-text-primary: #102A43;
+  --color-text-secondary: #4A5568;
+  --color-text-muted: #718096;
+  --color-text-inverse: #FFFFFF;
+  --color-text-gold: #C8A35A;
+
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-arabic: 'Noto Naskh Arabic', serif;
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  
+  --color-bg-light: var(--color-bg-light);
+  --color-bg-cream: var(--color-bg-cream);
+  --color-bg-dark: var(--color-bg-dark);
+  --color-bg-muted: var(--color-bg-muted);
+  
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-text-gold: var(--color-text-gold);
+  
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-arabic: var(--font-arabic);
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.video-media-frame {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.video-media-frame > :is(img, video) {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+}
+
+.video-media-frame[data-media-fit='contain'] > :is(img, video) {
+  object-fit: contain;
+}
+
+.video-media-frame[data-media-position='top'] > :is(img, video) {
+  object-position: top;
+}
+
+.video-media-frame[data-media-position='right'] > :is(img, video) {
+  object-position: right;
+}
+
+.video-media-frame[data-media-position='bottom'] > :is(img, video) {
+  object-position: bottom;
+}
+
+.video-media-frame[data-media-position='left'] > :is(img, video) {
+  object-position: left;
+}
+
+/* Custom utilities */
+.text-stroke-gold {
+  -webkit-text-stroke: 1px var(--color-secondary);
+  color: transparent;
+}
+.shadow-soft {
+  box-shadow: 0 20px 40px -10px rgba(16, 42, 67, 0.15);
+}
+.bg-gradient-cream {
+  background: linear-gradient(135deg, #F8F9FA 0%, #F3F1EC 100%);
+}
+.bg-gradient-navy {
+  background: linear-gradient(135deg, #102A43 0%, #0A1B2B 100%);
+}
+.texture-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+}

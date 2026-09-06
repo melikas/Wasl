@@ -1,0 +1,115 @@
+PROFILE TAB — DETAILED SPEC FOR WASL (paste this into Replit alongside the main build prompt, or as a follow-up refinement message)
+
+Build the Profile tab with two distinct layouts depending on role: a rich "What Matters to Me" profile for the Circle Lead, and a lightweight contact/availability profile for everyone else (Amanah Partner, Nurse, Companion). Do not show the same form to all roles — the Circle Lead's profile contains personal, cultural, and care-relevant preference data that other roles do not have and should not see in full.
+
+WHO CAN VIEW AND EDIT WHAT
+
+Circle Lead: can view and edit their own full profile at any time. No one else can edit it. Amanah Partners, Nurses, and Companions may view a read-only, filtered version of specific fields only where relevant to a task they're assigned to (e.g. a Nurse assigned to a personal-care task can see the modesty preference for personal care, but not the Circle Lead's dietary preference or notification settings) — this filtered view should be surfaced contextually inside the relevant Task detail screen, not as a full profile page, so no other role ever sees the Circle Lead's complete Profile tab.
+
+Amanah Partner, Nurse, Companion: each can view and edit only their own lightweight profile (contact info, language, availability). They cannot view any other member's profile, including each other's.
+
+No role other than the Circle Lead can edit the Circle Lead's profile, under any circumstance. Enforce this on the backend (reject any update request where the target user_id's role is circle_lead and the requester is not that same user_id), not just by hiding the edit button in the UI.
+
+SECTION 1 — IDENTITY (all roles, always visible on their own profile)
+
+Full name (read-only after signup, or editable with a confirmation step)
+
+Preferred name / what they want to be called (editable free text) — this is the name used everywhere else in the app (Home greeting, agent conversation, task assignments)
+
+Profile photo (optional upload)
+
+Role badge, read-only (Circle Lead / Amanah Partner / Nurse / Companion), shown for clarity but not editable by the user
+
+Phone number and/or email (editable, used for login and notifications)
+
+Preferred display language: English / French / Arabic (selecting Arabic switches the whole app to right-to-left layout immediately)
+
+SECTION 2 — GREETING STYLE (Circle Lead only)
+
+A single-choice setting: "How would you like Wasl to greet you?"
+
+Option A: a Salam-based greeting (e.g. "Assalamu Alaikum, [preferred name]")
+
+Option B: a neutral greeting (e.g. "Hello, [preferred name]")
+
+Option C: name-only, no greeting phrase (e.g. just "[preferred name],")
+
+This setting is never pre-selected or defaulted based on any assumption about the user — it must be an explicit, blank-by-default choice made during onboarding and editable anytime here.
+
+This value is read by the Home screen and the Agent conversation endpoint to open every interaction.
+
+SECTION 3 — WHAT MATTERS TO ME (Circle Lead only — the core of this tab)
+Group these under a clearly labeled section header "What Matters to Me," framed as personal choices, not a medical or demographic form:
+
+Dietary preference: free text field (e.g. "Halal, no pork, low salt") — feeds into grocery/meal-related tasks automatically
+
+Modesty preferences: three independent toggles, each phrased as a personal comfort setting, not a rule imposed on caregivers:
+
+"I am comfortable with a caregiver of the opposite gender helping with personal care (e.g. bathing, dressing)" — Yes/No
+
+"I am comfortable with a caregiver of the opposite gender accompanying me to medical visits" — Yes/No
+
+"I am comfortable with a caregiver of the opposite gender helping with transport or walking assistance" — Yes/No
+
+Each toggle independently attaches to relevant Task types at creation time (e.g. a personal-care task shows the assigning user a note: "Fatima has indicated a preference for a female caregiver for this task" if the toggle is set to No)
+
+Prayer preferences:
+
+"Show me prayer time reminders" — on/off
+
+Prayer calculation method (dropdown, sensible defaults, editable)
+
+Community connection preference: free text or short tags (e.g. "I'd like help getting to Jumu'ah," "I enjoy community events") — optional, purely to help Amanah Partners and Companions understand what kind of support to offer
+
+Communication style preference: a short multiple-choice ("I prefer calls," "I prefer visits," "I prefer written messages," multiple selectable) — informs how the agent and family reach out
+
+SECTION 4 — NOTIFICATION PREFERENCES (Circle Lead only, full set; other roles get a reduced version — see Section 6)
+Each is an independent on/off toggle, no bundling:
+
+Prayer time reminders
+
+Alerts (unassigned/urgent items)
+
+Reminders (general task/appointment reminders)
+
+Task completions (when someone finishes something for me)
+
+Arrivals/pickups (someone is coming to see me / someone is on the way to pick me up)
+
+SECTION 5 — PRIVACY & SHARING SHORTCUT (Circle Lead only)
+
+A short summary card, not a full duplicate of the Permissions screen: "X Amanah Partners, 1 Nurse, and 1 Companion are in your Wasl Circle. [View and manage who can see what →]" — this links out to the existing Circle-Lead-only Permissions tab rather than re-implementing the same controls here. Keep Profile and Permissions as separate screens with a single clear link between them, to avoid duplicating access-control logic in two places.
+
+SECTION 6 — LIGHTWEIGHT PROFILE (Amanah Partner, Nurse, Companion — replaces Sections 2-5 entirely for these roles)
+For these three roles, show only:
+
+Identity fields from Section 1
+
+Availability: a simple weekly grid or list — days and time windows they're available, tagged by mode (Call, Visit, Transport, Errand). Editable anytime; this is the same data the Agent checks before proposing them for a task.
+
+A reduced notification toggle set: Alerts, Reminders, Task completions (no prayer-time or arrival/pickup toggles for non-Circle-Lead roles, since those are the Circle Lead's personal preferences, not something other roles subscribe to about themselves)
+
+No dietary, modesty, greeting-style, or "What Matters to Me" fields at all — these are exclusively the Circle Lead's own preferences about themselves and must not appear as editable or even visible fields on any other role's profile
+
+DATA MODEL ADDITIONS / CONFIRMATION (should already align with the main Wasl data model — use these exact fields)
+
+User: preferred_name, preferred_language, greeting_style (nullable until Circle Lead sets it explicitly), profile_photo_url
+
+Preference (Circle Lead only, one row per Circle Lead user): dietary_preference, modesty_personal_care (bool), modesty_medical_visits (bool), modesty_transport (bool), prayer_reminders_enabled (bool), prayer_calculation_method, community_connection_notes (text), communication_style (array of tags), notification_prayer, notification_alerts, notification_reminders, notification_task_complete, notification_arrivals (all bool)
+
+Availability (all non-Circle-Lead roles, multiple rows per user): day_of_week, start_time, end_time, mode (call | visit | transport | errand)
+
+Backend rule: any PATCH/PUT to the Preference table must verify request.user_id == target user_id AND target user's role == circle_lead, or reject with 403
+
+UI NOTES
+
+Use the same navy (#102A43) / gold (#C8A35A) palette and large-text, high-contrast styling as the rest of the app on the Circle Lead's Profile, since this is a screen they'll likely use themselves.
+
+Group fields under clear section headers exactly as named above ("What Matters to Me," not "Cultural Settings" or "Medical Info") — this language matters and should not be altered.
+
+Every toggle should have a one-line plain-language explanation beneath it (e.g. under the modesty toggle: "This helps us match you with a caregiver you're comfortable with — you can change this anytime.")
+
+Save changes immediately per field (autosave on toggle/blur) rather than requiring a single "Save" button for the whole form, so the Circle Lead never loses changes if they navigate away mid-edit.
+
+VERIFICATION FOR THIS TAB SPECIFICALLY
+After building, confirm by testing: (1) logging in as the seeded Circle Lead and confirming all five sections appear and are editable, and that changes persist; (2) logging in as the seeded Amanah Partner, Nurse, and Companion accounts and confirming each sees only the lightweight profile from Section 6, with no dietary/modesty/greeting/notification-preference fields visible; (3) attempting to call the Preference update API route as a non-Circle-Lead user (e.g. via the Amanah Partner's session) and confirming it is rejected with a 403; (4) confirming the Circle Lead's chosen greeting style actually changes the wording used on the Home screen and at the start of an Agent conversation.

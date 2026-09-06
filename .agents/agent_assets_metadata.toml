@@ -1,0 +1,9 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "bdtVop5XyY9_5FxMjsVE5"
+uri = "file://artifacts/wasl-project-film/public/audio/bg_music.mp3"
+type = "audio"
+title = "Wasl background music"
+description = "Generated music: Cinematic uplifting orchestral instrumental background music scoring a mission-driven healthcare technology brand film. Warm piano, gentle strings, subtle frame drums, 92 BPM, compas…"
