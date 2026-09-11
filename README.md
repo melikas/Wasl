@@ -1,9 +1,30 @@
-# Wasl — Connected Care, with Dignity
+# Wasl
 
-Wasl is a privacy-first platform designed to help Muslim families coordinate everyday care for their elderly loved ones while keeping the elder at the center of their own care.
+**Connected care, with dignity.**
 
-It brings family members, caregivers, and community support into one shared circle, helping coordinate things like appointments, meals, transportation, medication reminders, and community activities. Wasl also uses a conversational AI companion to help elders ask for support in a simple and respectful way.
+Wasl is a privacy-first platform that helps families coordinate everyday care for older adults in one place.
 
-The platform is built around **privacy, consent, cultural preferences, and dignity** — making sure the elder's voice and choices remain central.
+## Inspiration
 
-🔗 **Learn more:** [View the project on Devpost](https://devpost.com/software/wasl-connected-care-with-dignity?utm_source=chatgpt.com)
+Care is often scattered across family members, caregivers, calendars, messages, and documents. Wasl brings everything together while keeping the older adult at the center of their own care.
+
+## What It Does
+
+* Shared care coordination
+* Tasks and reminders
+* Family & caregiver communication
+* Secure document sharing
+* Personalized preferences
+* AI-powered care assistant
+
+## Our Goal
+
+To make caring for an aging loved one **simpler, more organized, and more respectful of their independence.**
+
+## What's Next
+
+We are working toward voice interaction, wearable integrations, and pilot testing with families.
+
+---
+
+**Wasl — Connected Care, with Dignity.**
